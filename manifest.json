@@ -9,7 +9,7 @@
   "content_scripts": [
     {
       "js": ["scripts/content.js"],
-      "matches": ["*://excalidraw.com/*", "*://*.aaanh.app/*"]
+      "matches": ["*://excalidraw.com/*"]
     }
   ],
   "background": {
