@@ -29,9 +29,9 @@ async function isExistRepository(headers) {
     const data = await res.json();
 
     if (data.id) {
-      return { userId: parsed.login, status: true };
+      return { user: parsed, status: true };
     } else {
-      return { userId: parsed.login, status: false };
+      return { user: parsed, status: false };
     }
   } else {
     console.log("Github PAT is invalid.");
@@ -73,6 +73,32 @@ async function createRepository(headers) {
   }
 }
 
+async function syncData(headers, data) {
+  const commit_message = `Synced at ${new Date().toISOString()}`;
+  const committer = {
+    name: data.user.name,
+    email: data.user.email,
+  };
+  const content = data.payload;
+
+  const res = await fetch(
+    `${GITHUB_API_URL}/repos/${repository}/contents/data.json`,
+    {
+      method: "PUT",
+      headers: headers,
+      body: JSON.stringify({
+        message: commit_message,
+        committer: committer,
+        content: content,
+      }),
+    }
+  );
+
+  const parsed = await res.json();
+
+  console.log(parsed);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.localStorage) {
     data.localStorage = message.localStorage;
@@ -93,13 +119,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (data.github_pat.length > 0 && data.localStorage) {
     isExistRepository(headers).then((res) => {
       console.log(res);
+      const user = res.user;
       // init repo flow
       if (!res.status) {
-        createRepository(headers).then((res) => {
-          console.log(res);
-        });
+        createRepository(headers)
+          .then((res) => {
+            console.log(res);
+            syncData(headers, { user: user, payload: data.localStorage });
+          })
+          .then((res) => {
+            console.log(res);
+          });
       } else {
         console.log("Repository already existed");
+        syncData(headers, { user: user, payload: data.localStorage }).then(
+          (res) => {
+            console.log(res);
+          }
+        );
       }
     });
   }
