@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "ExcaliSync",
+  "description": "Sync your Excalidraw canvas to a 3rd party cloud service provider",
+  "version": "1.0",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "js": ["scripts/content.js"],
+      "matches": ["*://excalidraw.com/*", "*://*.aaanh.app/*"]
+    }
+  ],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "scripting",
+    "nativeMessaging",
+    "offscreen"
+  ],
+  "optional_permissions": ["unlimitedStorage"],
+  "host_permissions": [
+    "*://excalidraw.com/*",
+    "*://*.aaanh.app/*",
+    "*://*.github.com/*",
+    "*://github.com/*"
+  ],
+  "optional_host_permissions": ["https://*/*", "http://*/*"]
+}
