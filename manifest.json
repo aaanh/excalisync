@@ -21,7 +21,8 @@
     "storage",
     "scripting",
     "nativeMessaging",
-    "offscreen"
+    "offscreen",
+    "activeTab"
   ],
   "optional_permissions": ["unlimitedStorage"],
   "host_permissions": [

@@ -170,18 +170,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.download && data.github_pat.length > 0) {
     console.log("Download data triggered");
-    isExistRepository(headers).then((res) => {
-      const user = res.user;
-      if (res.status) {
-        getFile(headers, user, repository).then((file) => {
-          const content = file.content;
-          console.log("File retrieved", atob(content));
-        });
-      }
-    });
+
+    isExistRepository(headers)
+      .then((res) => {
+        const user = res.user;
+        if (res.status) {
+          getFile(headers, user, repository)
+            .then((file) => {
+              const content = file.content;
+              console.log("File retrieved", JSON.parse(atob(content)));
+
+              // Send the response back
+              sendResponse({
+                retrieved: true,
+                data: JSON.parse(atob(content)),
+              });
+            })
+            .catch((err) => {
+              console.error("Error retrieving file:", err);
+              sendResponse({ retrieved: false, error: err.message });
+            });
+        } else {
+          sendResponse({
+            retrieved: false,
+            error: "Repository does not exist",
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Error checking repository:", err);
+        sendResponse({ retrieved: false, error: err.message });
+      });
+
+    // Keep the message channel open for async response
+    return true;
   }
 
-  if (data.github_pat.length > 0 && data.localStorage) {
+  if (data.github_pat.length > 0 && data.localStorage && message.upload) {
     isExistRepository(headers).then((res) => {
       console.log(res);
       const user = res.user;

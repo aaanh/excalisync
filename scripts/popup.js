@@ -1,5 +1,3 @@
-console.log(github_pat);
-
 document.addEventListener("DOMContentLoaded", () => {
   const githubPatInput = document.getElementById("github_pat");
 
@@ -15,10 +13,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.getElementById("send_data").addEventListener("click", () => {
   const github_pat = document.getElementById("github_pat").value;
-  chrome.runtime.sendMessage({ github_pat: github_pat }, (response) => {});
+  chrome.runtime.sendMessage(
+    { github_pat: github_pat, upload: true },
+    (response) => {}
+  );
 });
 
 document.getElementById("download_data").addEventListener("click", () => {
   const github_pat = document.getElementById("github_pat").value;
-  chrome.runtime.sendMessage({ github_pat: github_pat, download: true });
+  chrome.runtime.sendMessage(
+    { github_pat: github_pat, download: true },
+    (res) => {
+      console.log(res);
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length > 0) {
+          chrome.tabs.sendMessage(tabs[0].id, res, (response) => {
+            if (chrome.runtime.lastError) {
+              console.error("Error:", chrome.runtime.lastError.message);
+            } else {
+              console.log("Response from content script:", response);
+            }
+          });
+        } else {
+          console.log("No active tab found.");
+        }
+      });
+    }
+  );
 });
